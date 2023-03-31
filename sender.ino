@@ -1,7 +1,7 @@
 
 #include <esp_now.h>
 #include <WiFi.h>
-//70:B8:F6:5D:64:48
+
 // REPLACE WITH YOUR RECEIVER MAC Address
 uint8_t broadcastAddress[] = {0xAA, 0xAB, 0x03, 0x23, 0xB1, 0xBA};//{0x70, 0xB8, 0xF6, 0x5D, 0x64, 0x48};
 
@@ -64,17 +64,13 @@ void readData(){
 void setup() {
   // Init Serial Monitor
   Serial.begin(115200);
-  Serial.println(analogRead(flexPin1));
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
-  Serial.println(analogRead(flexPin1));
-
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
     return;
   }
-  Serial.println(analogRead(flexPin1));
 
   // Once ESPNow is successfully Init, we will register for Send CB to
   // get the status of Trasnmitted packet
@@ -84,24 +80,18 @@ void setup() {
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);
   peerInfo.channel = 0;  
   peerInfo.encrypt = false;
-  Serial.println(analogRead(flexPin1));
 
   // Add peer        
   if (esp_now_add_peer(&peerInfo) != ESP_OK){
     Serial.println("Failed to add peer");
     return;
   }
-  Serial.println(analogRead(flexPin1));
-
 }
  
 void loop() {
   // Set values to send
-
-  int servoposition;
-
-  readData();
-  delay(50);
+  readData(); //call function to read sensor data
+  delay(50); //small delay
   // Send message via ESP-NOW
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
    
