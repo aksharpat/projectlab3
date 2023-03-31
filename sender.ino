@@ -35,22 +35,26 @@ void readData(){
   //delay(50);
   int position;
   int servoposition;
-  position = analogRead(flexPin1);
+  
+  position = analogRead(flexPin1); //index finger
   servoposition = map(position, 2940, 3700, 268, 10);
   servoposition = constrain(servoposition, 10, 268);
   //Serial.println(servoposition);
   myData.flex1 = servoposition;
-  position = analogRead(flexPin4);
+  
+  position = analogRead(flexPin4); //pinky finger
   servoposition = map(position, 2940, 3700, 100, 340);
   servoposition = constrain(servoposition, 100, 340);
   //Serial.println(servoposition);
   myData.flex4 = servoposition;
-  position = analogRead(flexPin2);
+  
+  position = analogRead(flexPin2); //middle finger
   servoposition = map(position, 3500, 4100, 285, 40);
   servoposition = constrain(servoposition, 40, 285);
   //Serial.println(servoposition);
   myData.flex2 = servoposition;
-  position = analogRead(flexPin3);
+  
+  position = analogRead(flexPin3); //ring finger
   servoposition = map(position, 2940, 3700, 55, 300);
   servoposition = constrain(servoposition, 55, 300);
   Serial.println(position);
