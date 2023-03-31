@@ -3,7 +3,7 @@
 #include <WiFi.h>
 #include <esp_wifi.h>
 #include "HCPCA9685.h"
-#define  I2CAdd 0x40
+#define  I2CAdd 0x40 //server driver I2C Address
 // Structure example to receive data
 // Must match the sender structure
 typedef struct struct_message {
@@ -19,22 +19,19 @@ Servo servo1;
 HCPCA9685 HCPCA9685(I2CAdd);
 struct_message myData;
 
+//new ESP Address
+uint8_t newMACAddress[] = {0xAA, 0xAB, 0x03, 0x23, 0xB1, 0xBA};
+
 // callback function that will be executed when data is received
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&myData, incomingData, sizeof(myData));
   Serial.print("Bytes received: ");
   Serial.println(len);
-  Serial.print("Read: ");
-  Serial.println(myData.flex1);
-  //servo1.write(myData.flex1);
-  HCPCA9685.Servo(0, myData.flex1);
-  HCPCA9685.Servo(3, myData.flex4);
-  HCPCA9685.Servo(1, myData.flex2);
-  HCPCA9685.Servo(2, myData.flex3);
+  HCPCA9685.Servo(0, myData.flex1); //index finger
+  HCPCA9685.Servo(3, myData.flex4); //pinky finger
+  HCPCA9685.Servo(1, myData.flex2); //middle finger
+  HCPCA9685.Servo(2, myData.flex3); //ring finger
 }
- 
-//new ESP Address
-uint8_t newMACAddress[] = {0xAA, 0xAB, 0x03, 0x23, 0xB1, 0xBA};
 
 void setup() {
   // Initialize Serial Monitor
@@ -43,9 +40,9 @@ void setup() {
   HCPCA9685.Sleep(false);
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
+  //change MAC address
   esp_wifi_set_mac(WIFI_IF_STA, &newMACAddress[0]);
   // Init ESP-NOW
-  servo1.attach(18);
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
     return;
