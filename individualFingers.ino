@@ -53,6 +53,10 @@ void setup()
  
 void loop() 
 {
+   
+  // VALUES FOR BOTH PARTS OF THE THUMB
+  //SERVO 4 IS THE FISHING LINE
+  //SERVO 5 IS THE SERVO HOUSED INSIDE THE HAND
   delay(2000);
   HCPCA9685.Servo(4, 330);
   HCPCA9685.Servo(5, 100);
