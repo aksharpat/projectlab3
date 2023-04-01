@@ -33,6 +33,58 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   HCPCA9685.Servo(2, myData.flex3); //ring finger
 }
 
+//test each finger on startup to make sure they all work
+void handInit() {
+  int thumb, index, middle, ring, pinky;
+  // stagger close and open (change i to 240 when adding thumb)
+  for(int i = 0; i <= 210; i++){
+
+    // Get staggered values between 0 and 60 to map to each finger
+    //int th = constrain(abs(i - 180), 0, 60);
+    int in = constrain(abs(i - 150), 0, 60);
+    int mi = constrain(abs(i - 120), 0, 60);
+    int ri = constrain(abs(i - 90), 0, 60);
+    int pi = constrain(abs(i - 60), 0, 60);
+    //map each 0-60 value to max/min servo value
+    index = map(in, 60, 0, 268, 10);
+    middle = map(mi, 60, 0, 285, 40);
+    ring = map(ri, 60, 0, 55, 300);
+    pinky = map(pi, 60, 0, 100, 340);
+    //move servos
+    HCPCA9685.Servo(0, index);
+    HCPCA9685.Servo(3, pinky);
+    HCPCA9685.Servo(1, middle);
+    HCPCA9685.Servo(2, ring);
+    //250 loop cycles = about 2 seconds with delay of 8
+    delay(8);
+  }
+  delay(500); //wait a moment before doing the next test
+
+  // Simultaneous close and open to test all fingers at once & current draw
+  for(int i = 0; i <= 120; i++){
+    // absolute value function that goes from 60 -> 0 -> 60
+    int j = abs(60 - i);
+    // map function to servo max/min servo values
+    //thumb = map(j, 60, 0, );
+    index = map(j, 60, 0, 268, 10);
+    middle = map(j, 60, 0, 285, 40);
+    ring = map(j, 60, 0, 55, 300);
+    pinky = map(j, 60, 0, 100, 340);
+    // move servos
+    HCPCA9685.Servo(0, index);
+    HCPCA9685.Servo(3, pinky);
+    HCPCA9685.Servo(1, middle);
+    HCPCA9685.Servo(2, ring);
+
+    // closes in about half a second, stops for a quarter second, and opens in about half a second
+    if(j == 0){
+      delay(250);
+    }  else {
+      delay(8);
+    }
+  }
+}
+
 void setup() {
   // Initialize Serial Monitor
   Serial.begin(115200);
