@@ -38,18 +38,20 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 // test each finger on startup to make sure they all work
 void handInit()
 {
-  int thumb, index, middle, ring, pinky;
-  // stagger close and open (change i to 240 when adding thumb)
-  for (int i = 0; i <= 210; i++)
+  int thumb1, thumb2, index, middle, ring, pinky;
+  // stagger close and open 
+  for (int i = 0; i <= 240; i++)
   {
 
     // Get staggered values between 0 and 60 to map to each finger
-    // int th = constrain(abs(i - 180), 0, 60);
+    int th = constrain(abs(i - 180), 0, 60);
     int in = constrain(abs(i - 150), 0, 60);
     int mi = constrain(abs(i - 120), 0, 60);
     int ri = constrain(abs(i - 90), 0, 60);
     int pi = constrain(abs(i - 60), 0, 60);
     // map each 0-60 value to max/min servo value
+    thumb1 = map(th, 60, 0, 100, 330); // fishing line
+    thumb2 = map(th, 60, 0, 250, 100); // palm joint
     index = map(in, 60, 0, 268, 10);
     middle = map(mi, 60, 0, 285, 40);
     ring = map(ri, 60, 0, 55, 300);
@@ -59,8 +61,10 @@ void handInit()
     HCPCA9685.Servo(3, pinky);
     HCPCA9685.Servo(1, middle);
     HCPCA9685.Servo(2, ring);
+    HCPCA9685.Servo(4, thumb1);
+    HCPCA9685.Servo(5, thumb2);
     // 250 loop cycles = about 2 seconds with delay of 8
-    delay(8);
+    delay(5);
   }
   delay(500); // wait a moment before doing the next test
 
@@ -70,7 +74,8 @@ void handInit()
     // absolute value function that goes from 60 -> 0 -> 60
     int j = abs(60 - i);
     // map function to servo max/min servo values
-    // thumb = map(j, 60, 0, );
+    thumb1 = map(j, 60, 0, 100, 330); // fishing line
+    thumb2 = map(j, 60, 0, 250, 100); // palm joint
     index = map(j, 60, 0, 268, 10);
     middle = map(j, 60, 0, 285, 40);
     ring = map(j, 60, 0, 55, 300);
@@ -80,17 +85,37 @@ void handInit()
     HCPCA9685.Servo(3, pinky);
     HCPCA9685.Servo(1, middle);
     HCPCA9685.Servo(2, ring);
+    HCPCA9685.Servo(4, thumb1);
+    HCPCA9685.Servo(5, thumb2);
 
     // closes in about half a second, stops for a quarter second, and opens in about half a second
     if (j == 0)
     {
-      delay(250);
+      delay(500);
     }
     else
     {
-      delay(8);
+      delay(5);
     }
   }
+}
+
+void openHand(){
+  HCPCA9685.Servo(0, 268);
+  HCPCA9685.Servo(3, 100);
+  HCPCA9685.Servo(1, 285);
+  HCPCA9685.Servo(2, 55);
+  HCPCA9685.Servo(4, 100);
+  HCPCA9685.Servo(5, 250);
+}
+
+void closeHand(){
+  HCPCA9685.Servo(0, 10);
+  HCPCA9685.Servo(3, 340);
+  HCPCA9685.Servo(1, 40);
+  HCPCA9685.Servo(2, 300);
+  HCPCA9685.Servo(4, 330);
+  HCPCA9685.Servo(5, 100);
 }
 
 void setup()
