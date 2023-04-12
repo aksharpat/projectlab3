@@ -21,8 +21,8 @@ typedef struct struct_message {
 
 Servo servo1;
 // data storage for arm positioning
-int steps;
-int elbowDest;
+int steps = 0;
+int elbowDest = 150;
 int elbowPos = 150;
 
 HCPCA9685 HCPCA9685(I2CAdd);
@@ -196,7 +196,7 @@ void loop()
     HCPCA9685.Servo(8, elbowPos); 
   }
   else{
-    elbowPos += (elbowDest - elbowPos) * .75;
+    elbowPos += (elbowDest - elbowPos) * .6;
     HCPCA9685.Servo(8, elbowPos);
   }
 }

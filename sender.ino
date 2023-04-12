@@ -25,12 +25,12 @@ const int flexPin4 = 32;
 const int flexPin1 = 33;
 const int flexPin3 = 34;
 const int flexPin2 = 35;
-const int flexPin5 = 39;
-const int flexPin6 = 36;
+const int flexPin5 = 26;
+const int flexPin6 = 25;
 
 #define  I2CAdd 0x40
-#define VRX_PIN  26 // analog in pin for x direction 
-#define VRY_PIN  27 // analog in pin for y direction 
+#define VRX_PIN  14 // analog in pin for x direction 
+#define VRY_PIN  12 // analog in pin for y direction 
 
 // storage for base joint data (up/down joystick)
 int basePos = 175;
@@ -162,9 +162,8 @@ void setup() {
 void loop() {
   // Set values to send
   readData(); //call function to read sensor data
-  delay(50); //small delay
   // Send message via ESP-NOW
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
-   
+  delay(10); //small delay
   
 }
