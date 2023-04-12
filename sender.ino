@@ -37,6 +37,11 @@ int basePos = 175;
 int rightleft1 = 0;
 int rightleft2 = 0;
 
+// wrist accelerometer data
+MPU6050 sensor;
+int16_t ax, ay, az;
+int16_t gx, gy, gz;
+
 // Create a struct_message called myData
 struct_message myData;
 
@@ -79,12 +84,17 @@ void readData(){
   // thumb is sent over as raw analog instead of premapped due to 2 thumb servos
   myData.flex5 = analogRead(flexPin5);
 
-  // change these values before implementation
   position = analogRead(flexPin6); //elbow
   servoposition = map(position, 1700, 3300, 360, 100);
   servoposition = constrain(servoposition, 360, 100);
   //Serial.println(position);
   myData.flex6 = servoposition;
+
+  // Wrist values from accelerometer
+  sensor.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+  myData.wristBend = map(ay, -17000, 17000, 0, 350);
+  myData.wristRot = map(ax, -17000, 17000, 0, 350);
+
 
   //joystick values
   int valueX = round(analogRead(VRX_PIN)/1000);

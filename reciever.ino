@@ -9,7 +9,7 @@
 typedef struct struct_message {
   int flex1;
   int flex2;
-  int flex3; //why is every hoe at this school allergic to descriptive variable names im gonna kill myself !!
+  int flex3;
   int flex4;
   int flex5;
   int flex6;
@@ -23,7 +23,7 @@ Servo servo1;
 // data storage for arm positioning
 int steps;
 int elbowDest;
-int elbowPos;
+int elbowPos = 150;
 
 HCPCA9685 HCPCA9685(I2CAdd);
 struct_message myData;
@@ -49,10 +49,13 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   HCPCA9685.Servo(5, thumb2); // palm joint
 
   elbowDest = myData.flex6;
-  HCPCA9685.Servo(8, myData.flex6); // elbow (without smoothing) 
+  //HCPCA9685.Servo(8, myData.flex6); // elbow (without smoothing)
   
   HCPCA9685.Servo(6, myData.base + 20); // base joint 1
   HCPCA9685.Servo(7, 410 - myData.base); // base joint 2
+
+  HCPCA9685.Servo(9, myData.wristRot); // wrist rotation
+  HCPCA9685.Servo(10, myData.wristBend); // wrist bend
 
   steps = myData.steps;
 }
@@ -186,5 +189,14 @@ void loop()
     delayMicroseconds(1);
     digitalWrite(9,LOW); //Pull step pin low so it can be triggered again
     delayMicroseconds(1);
+  }
+  // smoothing function for elbow movement
+  if(abs(elbowDest - elbowPos) < 5){
+    elbowPos = elbowDest;
+    HCPCA9685.Servo(8, elbowPos); 
+  }
+  else{
+    elbowPos += (elbowDest - elbowPos) * .75;
+    HCPCA9685.Servo(8, elbowPos);
   }
 }
