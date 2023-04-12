@@ -42,8 +42,8 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   HCPCA9685.Servo(1, myData.flex2); // middle finger
   HCPCA9685.Servo(2, myData.flex3); // ring finger
 
-  int thumb1 = constrain(map(myData.flex5, 2940, 3700, 100, 330), 100, 330); 
-  int thumb2 = constrain(map(myData.flex5, 2940, 3700, 250, 100), 250, 100);
+  int thumb1 = constrain(map(myData.flex5, 3100, 3700, 100, 330), 100, 330); 
+  int thumb2 = constrain(map(myData.flex5, 3100, 3700, 250, 100), 100, 250);
   HCPCA9685.Servo(4, thumb1); // fishing line
   HCPCA9685.Servo(5, thumb2); // palm joint
 
@@ -158,22 +158,24 @@ void setup()
     Serial.println("Error initializing ESP-NOW");
     return;
   }
-  // Initialize stepper motor pins (8 is direction and 9 is stepping)
-  pinMode(8, OUTPUT);
-  pinMode(9, OUTPUT);
-  digitalWrite(8, 0);
-  digitalWrite(9, LOW);
+  
 
   handInit();
   
   // Once ESPNow is successfully Init, we will register for recv CB to
   // get recv packer info
   esp_now_register_recv_cb(OnDataRecv);
+
+  // Initialize stepper motor pins (8 is direction and 9 is stepping)
+  //pinMode(8, OUTPUT);
+  //pinMode(9, OUTPUT);
+  //digitalWrite(8, 0);
+  //digitalWrite(9, LOW);
 }
 
 void loop()
 {
-  
+  /*
   if(steps > 0){ // rotate right
     steps -= 1;
     digitalWrite(8, 0); // Set stepper turn direction
@@ -190,6 +192,7 @@ void loop()
     digitalWrite(9,LOW); //Pull step pin low so it can be triggered again
     delayMicroseconds(1);
   }
+  */
   // smoothing function for elbow movement
   if(abs(elbowDest - elbowPos) < 5){
     elbowPos = elbowDest;
