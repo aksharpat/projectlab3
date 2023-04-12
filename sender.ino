@@ -1,6 +1,6 @@
-
 #include <esp_now.h>
 #include <WiFi.h>
+#include <MPU6050.h>
 
 // REPLACE WITH YOUR RECEIVER MAC Address
 uint8_t broadcastAddress[] = {0xAA, 0xAB, 0x03, 0x23, 0xB1, 0xBA};//{0x70, 0xB8, 0xF6, 0x5D, 0x64, 0x48};
@@ -13,13 +13,30 @@ typedef struct struct_message {
   int flex3;
   int flex4;
   int flex5;
+  int flex6;
+  int steps; // + is right, - is left
+  int base;
+  int wristRot;
+  int wristBend; 
 } struct_message;
 
-const int flexPin1 = 33;
+
 const int flexPin4 = 32;
-const int flexPin2 = 35;
+const int flexPin1 = 33;
 const int flexPin3 = 34;
- 
+const int flexPin2 = 35;
+const int flexPin5 = 39;
+const int flexPin6 = 36;
+
+#define  I2CAdd 0x40
+#define VRX_PIN  26 // analog in pin for x direction 
+#define VRY_PIN  27 // analog in pin for y direction 
+
+// storage for base joint data (up/down joystick)
+int basePos = 175;
+int rightleft1 = 0;
+int rightleft2 = 0;
+
 // Create a struct_message called myData
 struct_message myData;
 
@@ -32,7 +49,6 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 }
 
 void readData(){
-  //delay(50);
   int position;
   int servoposition;
   
@@ -57,8 +73,53 @@ void readData(){
   position = analogRead(flexPin3); //ring finger
   servoposition = map(position, 2940, 3700, 55, 300);
   servoposition = constrain(servoposition, 55, 300);
-  Serial.println(position);
+  //Serial.println(position);
   myData.flex3 = servoposition;
+
+  // thumb is sent over as raw analog instead of premapped due to 2 thumb servos
+  myData.flex5 = analogRead(flexPin5);
+
+  // change these values before implementation
+  position = analogRead(flexPin6); //elbow
+  servoposition = map(position, 1700, 3300, 360, 100);
+  servoposition = constrain(servoposition, 360, 100);
+  //Serial.println(position);
+  myData.flex6 = servoposition;
+
+  //joystick values
+  int valueX = round(analogRead(VRX_PIN)/1000);
+  int valueY = round(analogRead(VRY_PIN)/1000);
+ 
+  // stepper motor control
+  if (valueX > 1) {
+    myData.steps = -10;
+  }
+  else if (valueX < 1) {
+    myData.steps = 10;
+  }
+  // base joint control
+  if (valueY > 1) {
+    if(rightleft1 >= 5){
+      if(basePos <= 330){
+        basePos = basePos + 1;
+        myData.base = basePos;
+      }
+      rightleft2 = 0;
+    }else{
+      rightleft1++;
+    }
+  }
+  else if (valueY < 1) {
+    if(rightleft2 >= 5){
+      if (basePos >= 20){
+        basePos = basePos - 1;
+        myData.base = basePos;
+      }
+      rightleft1 = 0;
+    } else{
+      rightleft2++;
+    }
+  }
 }
 
 void setup() {

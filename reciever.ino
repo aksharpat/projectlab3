@@ -4,18 +4,26 @@
 #include <esp_wifi.h>
 #include "HCPCA9685.h"
 #define I2CAdd 0x40 // server driver I2C Address
-// Structure example to receive data
-// Must match the sender structure
-typedef struct struct_message
-{
+// Structure example to send data
+// Must match the receiver structure
+typedef struct struct_message {
   int flex1;
   int flex2;
-  int flex3;
+  int flex3; //why is every hoe at this school allergic to descriptive variable names im gonna kill myself !!
   int flex4;
   int flex5;
+  int flex6;
+  int steps; // + is right, - is left
+  int base;
+  int wristRot;
+  int wristBend; 
 } struct_message;
 
 Servo servo1;
+// data storage for arm positioning
+int steps;
+int elbowDest;
+int elbowPos;
 
 HCPCA9685 HCPCA9685(I2CAdd);
 struct_message myData;
@@ -33,6 +41,20 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   HCPCA9685.Servo(3, myData.flex4); // pinky finger
   HCPCA9685.Servo(1, myData.flex2); // middle finger
   HCPCA9685.Servo(2, myData.flex3); // ring finger
+
+  // x and y need to be changed to thumb flex sensor values
+  int thumb1 = constrain(map(x, y, 100, 330), 100, 330); 
+  int thumb2 = constrain(map(x, y, 250, 100), 250, 100);
+  HCPCA9685.Servo(4, thumb1); // fishing line
+  HCPCA9685.Servo(5, thumb2); // palm joint
+
+  elbowDest = myData.flex6;
+  HCPCA9685.Servo(8, myData.flex6); // elbow (without smoothing) 
+  
+  HCPCA9685.Servo(6, myData.base + 20); // base joint 1
+  HCPCA9685.Servo(7, 410 - myData.base); // base joint 2
+
+  steps = myData.steps;
 }
 
 // test each finger on startup to make sure they all work
@@ -134,8 +156,14 @@ void setup()
     Serial.println("Error initializing ESP-NOW");
     return;
   }
-  handInit();
+  // Initialize stepper motor pins (8 is direction and 9 is stepping)
+  pinMode(8, OUTPUT);
+  pinMode(9, OUTPUT);
+  digitalWrite(8, 0);
+  digitalWrite(9, LOW);
 
+  handInit();
+  
   // Once ESPNow is successfully Init, we will register for recv CB to
   // get recv packer info
   esp_now_register_recv_cb(OnDataRecv);
@@ -143,4 +171,20 @@ void setup()
 
 void loop()
 {
+  if(steps > 0){ // rotate right
+    steps -= 1;
+    digitalWrite(8, 0); // Set stepper turn direction
+    digitalWrite(9,HIGH); //Trigger one step forward
+    delayMicroseconds(1);
+    digitalWrite(9,LOW); //Pull step pin low so it can be triggered again
+    delayMicroseconds(1);
+  }
+  else if (steps < 0){ // rotate left
+    steps += 1;
+    digitalWrite(8, 1); // Set stepper turn direction
+    digitalWrite(9,HIGH); //Trigger one step forward
+    delayMicroseconds(1);
+    digitalWrite(9,LOW); //Pull step pin low so it can be triggered again
+    delayMicroseconds(1);
+  }
 }
