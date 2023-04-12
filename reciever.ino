@@ -42,9 +42,8 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   HCPCA9685.Servo(1, myData.flex2); // middle finger
   HCPCA9685.Servo(2, myData.flex3); // ring finger
 
-  // x and y need to be changed to thumb flex sensor values
-  int thumb1 = constrain(map(x, y, 100, 330), 100, 330); 
-  int thumb2 = constrain(map(x, y, 250, 100), 250, 100);
+  int thumb1 = constrain(map(2940, 3700, 100, 330), 100, 330); 
+  int thumb2 = constrain(map(2940, 3700, 250, 100), 250, 100);
   HCPCA9685.Servo(4, thumb1); // fishing line
   HCPCA9685.Servo(5, thumb2); // palm joint
 

@@ -70,7 +70,7 @@ void readData(){
   myData.flex4 = servoposition;
   
   position = analogRead(flexPin2); //middle finger
-  servoposition = map(position, 3500, 4100, 285, 40);
+  servoposition = map(position, 2940, 3700, 285, 40);
   servoposition = constrain(servoposition, 40, 285);
   //Serial.println(servoposition);
   myData.flex2 = servoposition;
