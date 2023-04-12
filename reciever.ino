@@ -42,8 +42,8 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   HCPCA9685.Servo(1, myData.flex2); // middle finger
   HCPCA9685.Servo(2, myData.flex3); // ring finger
 
-  int thumb1 = constrain(map(2940, 3700, 100, 330), 100, 330); 
-  int thumb2 = constrain(map(2940, 3700, 250, 100), 250, 100);
+  int thumb1 = constrain(map(myData.flex5, 2940, 3700, 100, 330), 100, 330); 
+  int thumb2 = constrain(map(myData.flex5, 2940, 3700, 250, 100), 250, 100);
   HCPCA9685.Servo(4, thumb1); // fishing line
   HCPCA9685.Servo(5, thumb2); // palm joint
 
@@ -173,6 +173,7 @@ void setup()
 
 void loop()
 {
+  
   if(steps > 0){ // rotate right
     steps -= 1;
     digitalWrite(8, 0); // Set stepper turn direction
@@ -198,4 +199,5 @@ void loop()
     elbowPos += (elbowDest - elbowPos) * .6;
     HCPCA9685.Servo(8, elbowPos);
   }
+
 }
