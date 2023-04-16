@@ -164,35 +164,37 @@ void setup()
   
   // Once ESPNow is successfully Init, we will register for recv CB to
   // get recv packer info
-  esp_now_register_recv_cb(OnDataRecv);
 
   // Initialize stepper motor pins (8 is direction and 9 is stepping)
-  //pinMode(8, OUTPUT);
-  //pinMode(9, OUTPUT);
-  //digitalWrite(8, 0);
-  //digitalWrite(9, LOW);
+  
+  pinMode(18, OUTPUT);
+  pinMode(19, OUTPUT);
+  digitalWrite(18, 0);
+  digitalWrite(19, LOW);
+  
+  esp_now_register_recv_cb(OnDataRecv);
 }
 
 void loop()
 {
-  /*
+  
   if(steps > 0){ // rotate right
     steps -= 1;
-    digitalWrite(8, 0); // Set stepper turn direction
-    digitalWrite(9,HIGH); //Trigger one step forward
+    digitalWrite(18, 0); // Set stepper turn direction
+    digitalWrite(19,HIGH); //Trigger one step forward
     delayMicroseconds(1);
-    digitalWrite(9,LOW); //Pull step pin low so it can be triggered again
+    digitalWrite(19,LOW); //Pull step pin low so it can be triggered again
     delayMicroseconds(1);
   }
   else if (steps < 0){ // rotate left
     steps += 1;
-    digitalWrite(8, 1); // Set stepper turn direction
-    digitalWrite(9,HIGH); //Trigger one step forward
+    digitalWrite(18, 1); // Set stepper turn direction
+    digitalWrite(19,HIGH); //Trigger one step forward
     delayMicroseconds(1);
-    digitalWrite(9,LOW); //Pull step pin low so it can be triggered again
+    digitalWrite(19,LOW); //Pull step pin low so it can be triggered again
     delayMicroseconds(1);
   }
-  */
+  
   // smoothing function for elbow movement
   if(abs(elbowDest - elbowPos) < 5){
     elbowPos = elbowDest;
