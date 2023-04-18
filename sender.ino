@@ -1,10 +1,14 @@
+#include <Adafruit_ADS1X15.h>
+
+#include <MPU6050.h>
 #include <esp_now.h>
 #include <WiFi.h>
-#include <MPU6050.h>
+//#include <Wire.h>
 
 // REPLACE WITH YOUR RECEIVER MAC Address
 uint8_t broadcastAddress[] = {0xAA, 0xAB, 0x03, 0x23, 0xB1, 0xBA};//{0x70, 0xB8, 0xF6, 0x5D, 0x64, 0x48};
 
+Adafruit_ADS1115 ads; //adc extension
 // Structure example to send data
 // Must match the receiver structure
 typedef struct struct_message {
@@ -21,16 +25,16 @@ typedef struct struct_message {
 } struct_message;
 
 
-const int flexPin4 = 32;
-const int flexPin1 = 33;
-const int flexPin3 = 34;
-const int flexPin2 = 35;
-const int flexPin5 = 26;
-const int flexPin6 = 25;
+const int flexPin4 = 32; //pinky
+const int flexPin1 = 1; //adc ext pin; index
+const int flexPin3 = 34; //ring
+const int flexPin2 = 35; //middle
+const int flexPin5 = 0; //adc ext pin; thumb
+const int flexPin6 = 33; //elbow
 
-#define  I2CAdd 0x40
-#define VRX_PIN  14 // analog in pin for x direction 
-#define VRY_PIN  12 // analog in pin for y direction 
+//#define  I2CAdd 0x40
+#define VRX_PIN  2 // adc ext pin for x direction 
+#define VRY_PIN  3 //adc ext pin for y direction 
 
 // storage for base joint data (up/down joystick)
 int basePos = 175;
@@ -38,7 +42,7 @@ int rightleft1 = 0;
 int rightleft2 = 0;
 
 // wrist accelerometer data
-MPU6050 sensor;
+MPU6050 accel;
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
 
@@ -56,59 +60,65 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 void readData(){
   int position;
   int servoposition;
-  
-  position = analogRead(flexPin1); //index finger
-  servoposition = map(position, 2940, 3700, 268, 10);
+  int16_t adc;
+  //WiFi.stop();
+
+  position = ads.readADC_SingleEnded(flexPin1); //index finger
+  servoposition = map(position, 13450, 16000, 268, 10);
   servoposition = constrain(servoposition, 10, 268);
-  //Serial.println(servoposition);
-  myData.flex1 = servoposition;
+  //Serial.println(position);
+  myData.flex2 = servoposition;
   
   position = analogRead(flexPin4); //pinky finger
-  servoposition = map(position, 2940, 3700, 100, 340);
+  servoposition = map(position, 2940, 3500, 100, 340);
   servoposition = constrain(servoposition, 100, 340);
   //Serial.println(servoposition);
   myData.flex4 = servoposition;
   
   position = analogRead(flexPin2); //middle finger
-  servoposition = map(position, 2940, 3700, 285, 40);
+  servoposition = map(position, 2940, 3500, 285, 30);
   servoposition = constrain(servoposition, 40, 285);
   //Serial.println(servoposition);
-  myData.flex2 = servoposition;
+  myData.flex1 = servoposition;
   
   position = analogRead(flexPin3); //ring finger
-  servoposition = map(position, 2940, 3700, 55, 300);
+  servoposition = map(position, 3100, 3700, 55, 300);
   servoposition = constrain(servoposition, 55, 300);
-  //Serial.println(position);
+  //Serial.println(servoposition);
   myData.flex3 = servoposition;
 
   // thumb is sent over as raw analog instead of premapped due to 2 thumb servos
-  myData.flex5 = analogRead(flexPin5);
+  myData.flex5 = ads.readADC_SingleEnded(flexPin5);
+  //Serial.println(myData.flex5);
 
   position = analogRead(flexPin6); //elbow
-  servoposition = map(position, 1700, 3300, 360, 100);
-  servoposition = constrain(servoposition, 360, 100);
+  servoposition = map(position, 1700, 3100, 360, 100);
+  servoposition = constrain(servoposition, 100, 360);
   //Serial.println(position);
   myData.flex6 = servoposition;
-
+  //Serial.println(myData.flex6);
+  //Serial.println(" ");
   // Wrist values from accelerometer
-  sensor.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+  accel.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
   myData.wristBend = map(ay, -17000, 17000, 0, 350);
   myData.wristRot = map(ax, -17000, 17000, 0, 350);
-
+  Serial.println(myData.wristBend);
 
   //joystick values
-  int valueX = round(analogRead(VRX_PIN)/1000);
-  int valueY = round(analogRead(VRY_PIN)/1000);
- 
+  int valueX = round(ads.readADC_SingleEnded(VRX_PIN)/1000);
+  int valueY = round(ads.readADC_SingleEnded(VRY_PIN)/1000);
+  //Serial.println(valueY);
   // stepper motor control
-  if (valueX > 1) {
+  if (valueX > 8) {
     myData.steps = -10;
   }
-  else if (valueX < 1) {
+  else if (valueX < 8) {
     myData.steps = 10;
+  } else{
+    myData.steps = 0;
   }
   // base joint control
-  if (valueY > 1) {
+  if (valueY > 8) {
     if(rightleft1 >= 5){
       if(basePos <= 330){
         basePos = basePos + 1;
@@ -119,7 +129,7 @@ void readData(){
       rightleft1++;
     }
   }
-  else if (valueY < 1) {
+  else if (valueY < 8) {
     if(rightleft2 >= 5){
       if (basePos >= 20){
         basePos = basePos - 1;
@@ -130,12 +140,17 @@ void readData(){
       rightleft2++;
     }
   }
+  //WiFi.begin();
 }
 
 void setup() {
   // Init Serial Monitor
   Serial.begin(115200);
+  //Wire.begin(21, 22);
+  // begin ads1115
+  ads.begin();
   // Set device as a Wi-Fi Station
+  accel.initialize();
   WiFi.mode(WIFI_STA);
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK) {
@@ -163,7 +178,7 @@ void loop() {
   // Set values to send
   readData(); //call function to read sensor data
   // Send message via ESP-NOW
-  esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
   delay(10); //small delay
+  esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
   
 }
