@@ -24,7 +24,8 @@ Servo servo1;
 int steps = 0;
 int elbowDest = 150;
 int elbowPos = 150;
-
+int base_angle;
+int base_raw;
 HCPCA9685 HCPCA9685(I2CAdd);
 struct_message myData;
 
@@ -50,13 +51,12 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   elbowDest = myData.flex6;
   //HCPCA9685.Servo(8, myData.flex6); // elbow (without smoothing)
   
-  HCPCA9685.Servo(6, myData.base + 20); // base joint 1
-  HCPCA9685.Servo(7, 410 - myData.base); // base joint 2
-
+  // Wrist control
   HCPCA9685.Servo(9, myData.wristRot); // wrist rotation
   HCPCA9685.Servo(10, myData.wristBend); // wrist bend
 
   steps = myData.steps;
+  
 }
 
 // test each finger on startup to make sure they all work
@@ -148,6 +148,8 @@ void setup()
   Serial.begin(115200);
   HCPCA9685.Init(SERVO_MODE);
   HCPCA9685.Sleep(false);
+  base_angle = 175;
+  base_raw = 17500;
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
   // change MAC address
@@ -179,29 +181,42 @@ void loop()
 {
   
   if(steps > 0){ // rotate right
-    steps -= 1;
     digitalWrite(18, 0); // Set stepper turn direction
     digitalWrite(19,HIGH); //Trigger one step forward
     delayMicroseconds(1);
     digitalWrite(19,LOW); //Pull step pin low so it can be triggered again
     delayMicroseconds(1);
+    
   }
   else if (steps < 0){ // rotate left
-    steps += 1;
     digitalWrite(18, 1); // Set stepper turn direction
     digitalWrite(19,HIGH); //Trigger one step forward
     delayMicroseconds(1);
     digitalWrite(19,LOW); //Pull step pin low so it can be triggered again
     delayMicroseconds(1);
+    
   }
-  
+
+  if(myData.base == 1 && base_raw < 30000){
+    base_raw += 10;
+  } else if(myData.base == -1 && base_raw > 5000){
+    base_raw -= 10;
+  } 
+  base_raw = constrain(base_raw, 5000, 30000);
+
+  base_angle = map(base_raw, 5000,30000, 100,250);
+  HCPCA9685.Servo(6, base_angle + 20); // base joint 1
+  HCPCA9685.Servo(7, 410 - base_angle); // base joint 2
+  Serial.println(myData.wristRot);
+
   // smoothing function for elbow movement
-  if(abs(elbowDest - elbowPos) < 5){
+  
+  if(abs(elbowDest - elbowPos) < 6){
     elbowPos = elbowDest;
     HCPCA9685.Servo(8, elbowPos); 
   }
   else{
-    elbowPos += (elbowDest - elbowPos) * .6;
+    elbowPos += (elbowDest - elbowPos) * .15;
     HCPCA9685.Servo(8, elbowPos);
   }
 
