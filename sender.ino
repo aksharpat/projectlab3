@@ -66,8 +66,8 @@ void readData(){
   position = ads.readADC_SingleEnded(flexPin1); //index finger
   servoposition = map(position, 13450, 16000, 268, 10);
   servoposition = constrain(servoposition, 10, 268);
-  //Serial.println(position);
-  myData.flex2 = servoposition;
+  //Serial.println(servoposition);
+  myData.flex1 = servoposition;
   
   position = analogRead(flexPin4); //pinky finger
   servoposition = map(position, 2940, 3500, 100, 340);
@@ -76,10 +76,10 @@ void readData(){
   myData.flex4 = servoposition;
   
   position = analogRead(flexPin2); //middle finger
-  servoposition = map(position, 2940, 3500, 285, 30);
+  servoposition = map(position, 3770, 4095, 285, 30);
   servoposition = constrain(servoposition, 40, 285);
-  //Serial.println(servoposition);
-  myData.flex1 = servoposition;
+  Serial.println(servoposition);
+  myData.flex2 = servoposition;
   
   position = analogRead(flexPin3); //ring finger
   servoposition = map(position, 3100, 3700, 55, 300);
@@ -97,12 +97,12 @@ void readData(){
   //Serial.println(position);
   myData.flex6 = servoposition;
   //Serial.println(myData.flex6);
-  //Serial.println(" ");
+  Serial.println(" ");
   // Wrist values from accelerometer
   accel.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-  myData.wristBend = map(ay, -17000, 17000, 0, 350);
-  myData.wristRot = map(ax, -17000, 17000, 0, 350);
-  Serial.println(myData.wristBend);
+  myData.wristBend = map(ax, -17000, 17000, 0, 350);
+  myData.wristRot = map(ay, -17000, 17000, 0, 350);
+  //Serial.println(myData.wristBend);
 
   //joystick values
   int valueX = round(ads.readADC_SingleEnded(VRX_PIN)/1000);
@@ -119,26 +119,22 @@ void readData(){
   }
   // base joint control
   if (valueY > 8) {
-    if(rightleft1 >= 5){
-      if(basePos <= 330){
-        basePos = basePos + 1;
-        myData.base = basePos;
-      }
+    if(rightleft1 >= 2){      
+      myData.base = 1;
       rightleft2 = 0;
     }else{
       rightleft1++;
     }
   }
   else if (valueY < 8) {
-    if(rightleft2 >= 5){
-      if (basePos >= 20){
-        basePos = basePos - 1;
-        myData.base = basePos;
-      }
+    if(rightleft2 >= 2){
+      myData.base = -1;
       rightleft1 = 0;
     } else{
       rightleft2++;
     }
+  } else{
+    myData.base = 0;
   }
   //WiFi.begin();
 }
@@ -157,7 +153,7 @@ void setup() {
     Serial.println("Error initializing ESP-NOW");
     return;
   }
-
+  myData.base = 0;
   // Once ESPNow is successfully Init, we will register for Send CB to
   // get the status of Trasnmitted packet
   esp_now_register_send_cb(OnDataSent);
@@ -178,7 +174,7 @@ void loop() {
   // Set values to send
   readData(); //call function to read sensor data
   // Send message via ESP-NOW
-  delay(10); //small delay
+  delay(4); //small delay
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
   
 }
