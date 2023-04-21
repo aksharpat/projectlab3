@@ -197,14 +197,14 @@ void loop()
     
   }
 
-  if(myData.base == 1 && base_raw < 30000){
+  if(myData.base == 1 && base_raw < 25000){
     base_raw += 10;
-  } else if(myData.base == -1 && base_raw > 5000){
+  } else if(myData.base == -1 && base_raw > 10000){
     base_raw -= 10;
   } 
-  base_raw = constrain(base_raw, 5000, 30000);
+  base_raw = constrain(base_raw, 10000, 25000);
 
-  base_angle = map(base_raw, 5000,30000, 100,250);
+  base_angle = map(base_raw, 10000,25000, 100,250);
   HCPCA9685.Servo(6, base_angle + 20); // base joint 1
   HCPCA9685.Servo(7, 410 - base_angle); // base joint 2
   Serial.println(myData.wristRot);
