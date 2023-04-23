@@ -62,27 +62,27 @@ void readData(){
   int servoposition;
   int16_t adc;
   //WiFi.stop();
-
+  
   position = ads.readADC_SingleEnded(flexPin1); //index finger
-  servoposition = map(position, 13450, 16000, 268, 10);
-  servoposition = constrain(servoposition, 10, 268);
+  servoposition = map(position, 13450, 16000, 280, 0); // change last 2 numbers to control dead zone size
+  servoposition = constrain(servoposition, 10, 268); // these numbers should never change (unless servo needs different values)
   //Serial.println(servoposition);
   myData.flex1 = servoposition;
   
   position = analogRead(flexPin4); //pinky finger
-  servoposition = map(position, 2940, 3500, 100, 340);
+  servoposition = map(position, 2940, 3500, 90, 350);
   servoposition = constrain(servoposition, 100, 340);
   //Serial.println(servoposition);
   myData.flex4 = servoposition;
   
   position = analogRead(flexPin2); //middle finger
-  servoposition = map(position, 3770, 4095, 285, 30);
+  servoposition = map(position, 3770, 4095, 295, 30);
   servoposition = constrain(servoposition, 40, 285);
   Serial.println(servoposition);
   myData.flex2 = servoposition;
   
   position = analogRead(flexPin3); //ring finger
-  servoposition = map(position, 3100, 3700, 55, 300);
+  servoposition = map(position, 3100, 3700, 45, 310);
   servoposition = constrain(servoposition, 55, 300);
   //Serial.println(servoposition);
   myData.flex3 = servoposition;
@@ -92,7 +92,7 @@ void readData(){
   //Serial.println(myData.flex5);
 
   position = analogRead(flexPin6); //elbow
-  servoposition = map(position, 1700, 3100, 360, 100);
+  servoposition = map(position, 1700, 3100, 370, 90);
   servoposition = constrain(servoposition, 100, 360);
   //Serial.println(position);
   myData.flex6 = servoposition;
