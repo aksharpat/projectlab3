@@ -17,7 +17,6 @@ typedef struct struct_message {
   int flex3;
   int flex4;
   int flex5;
-  int flex6;
   int steps; // + is right, - is left
   int base;
   int wristRot;
@@ -30,7 +29,6 @@ const int flexPin1 = 1; //adc ext pin; index
 const int flexPin3 = 34; //ring
 const int flexPin2 = 35; //middle
 const int flexPin5 = 0; //adc ext pin; thumb
-const int flexPin6 = 33; //elbow
 
 //#define  I2CAdd 0x40
 #define VRX_PIN  2 // adc ext pin for x direction 
@@ -91,12 +89,6 @@ void readData(){
   myData.flex5 = ads.readADC_SingleEnded(flexPin5);
   //Serial.println(myData.flex5);
 
-  position = analogRead(flexPin6); //elbow
-  servoposition = map(position, 1700, 3100, 370, 90);
-  servoposition = constrain(servoposition, 100, 360);
-  //Serial.println(position);
-  myData.flex6 = servoposition;
-  //Serial.println(myData.flex6);
   Serial.println(" ");
   // Wrist values from accelerometer
   accel.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);

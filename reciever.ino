@@ -12,7 +12,6 @@ typedef struct struct_message {
   int flex3;
   int flex4;
   int flex5;
-  int flex6;
   int steps; // + is right, - is left
   int base;
   int wristRot;
@@ -22,8 +21,6 @@ typedef struct struct_message {
 Servo servo1;
 // data storage for arm positioning
 int steps = 0;
-int elbowDest = 150;
-int elbowPos = 150;
 int base_angle;
 int base_raw;
 HCPCA9685 HCPCA9685(I2CAdd);
@@ -48,8 +45,6 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   HCPCA9685.Servo(4, thumb1); // fishing line
   HCPCA9685.Servo(5, thumb2); // palm joint
 
-  elbowDest = myData.flex6;
-  //HCPCA9685.Servo(8, myData.flex6); // elbow (without smoothing)
   
   // Wrist control
   HCPCA9685.Servo(9, myData.wristRot); // wrist rotation
@@ -209,15 +204,5 @@ void loop()
   HCPCA9685.Servo(7, 410 - base_angle); // base joint 2
   Serial.println(myData.wristRot);
 
-  // smoothing function for elbow movement
-  
-  if(abs(elbowDest - elbowPos) < 6){
-    elbowPos = elbowDest;
-    HCPCA9685.Servo(8, elbowPos); 
-  }
-  else{
-    elbowPos += (elbowDest - elbowPos) * .15;
-    HCPCA9685.Servo(8, elbowPos);
-  }
 
 }
