@@ -23,6 +23,15 @@ Servo servo1;
 int steps = 0;
 int base_angle;
 int base_raw;
+
+// variables for smoothing function
+int fingerDest[6] = {-1, -1, -1, -1, -1, -1}; // smoothing starts when data is first received
+int fingerPos[6];
+int fingerRaw[6] = {-1, -1, -1, -1, -1, -1}; // init for first pass of data receiving
+int fingerVel[6];
+int maxVel = 50;
+int fingerAccel = 1;
+
 HCPCA9685 HCPCA9685(I2CAdd);
 struct_message myData;
 
@@ -35,15 +44,21 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   memcpy(&myData, incomingData, sizeof(myData));
   Serial.print("Bytes received: ");
   Serial.println(len);
-  HCPCA9685.Servo(0, myData.flex1); // index finger
-  HCPCA9685.Servo(3, myData.flex4); // pinky finger
-  HCPCA9685.Servo(1, myData.flex2); // middle finger
-  HCPCA9685.Servo(2, myData.flex3); // ring finger
+  //HCPCA9685.Servo(0, myData.flex1); // index finger
+  fingerDest[0] = myData.flex1;
+  //HCPCA9685.Servo(3, myData.flex4); // pinky finger
+  fingerDest[3] = myData.flex4;
+  //HCPCA9685.Servo(1, myData.flex2); // middle finger
+  fingerDest[1] = myData.flex2;
+  //HCPCA9685.Servo(2, myData.flex3); // ring finger
+  fingerDest[2] = myData.flex3;
 
   int thumb1 = constrain(map(myData.flex5, 13800, 15800, 90, 340), 100, 330); 
   int thumb2 = constrain(map(myData.flex5, 13800, 15800, 260, 90), 100, 250);
-  HCPCA9685.Servo(4, thumb1); // fishing line
-  HCPCA9685.Servo(5, thumb2); // palm joint
+  //HCPCA9685.Servo(4, thumb1); // fishing line
+  fingerDest[4] = thumb1;
+  //HCPCA9685.Servo(5, thumb2); // palm joint
+  fingerDest[5] = thumb2;
 
   
   // Wrist control
@@ -204,5 +219,60 @@ void loop()
   HCPCA9685.Servo(7, 410 - base_angle); // base joint 2
   Serial.println(myData.wristRot);
 
-
+  // loop through each finger for smoothing
+  // 0 is pointer, 1 is middle, 2 is ring, 
+  // 3 is pinky, 4 is thumb line, 5 is palm joint
+  for(int i = 0; i < 6; i++){ 
+    if(fingerDest[i] != -1){ // wait until finger data is received
+      if(fingerRaw[i] == -1){ // initialize finger position to first data sent, without smoothing
+        fingerPos[i] = fingerDest[i];
+        fingerRaw[i] = fingerPos[i] * 100;
+      }
+      else if (fingerDest[i] * 100 > fingerRaw[i]){ // destination is above raw function value
+        if(fingerDest[i] * 100 - fingerRaw[i] > constrain(fingerVel[i], -1, 1) * fingerVel[i] * fingerVel[i] / (2 * fingerAccel)){ 
+          // velocity can still increase (positive acceleration)
+          fingerVel[i] += fingerAccel;
+          fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
+          fingerRaw[i] += fingerVel[i];
+          fingerPos[i] = fingerRaw[i] / 100;
+          if(fingerRaw % 100 >= 50){
+            fingerPos += 1;
+          }
+        }
+        else{
+          // velocity needs to start decreasing to smooth to desired destination point
+          fingerVel[i] -= fingerAccel;
+          fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
+          fingerRaw[i] += fingerVel[i];
+          fingerPos[i] = fingerRaw[i] / 100;
+          if(fingerRaw % 100 >= 50){
+            fingerPos += 1;
+          }
+        }
+      }
+      else if (fingerDest[i] * 100 < fingerRaw[i]){
+        if(fingerDest[i] * 100 - fingerRaw[i] < constrain(fingerVel[i], -1, 1) * fingerVel[i] * fingerVel[i] / (2 * fingerAccel)){ 
+          // velocity can continue to decrease (magnitude is increasing if negative already)
+          fingerVel[i] -= fingerAccel;
+          fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
+          fingerRaw[i] += fingerVel[i];
+          fingerPos[i] = fingerRaw[i] / 100;
+          if(fingerRaw % 100 >= 50){
+            fingerPos += 1;
+          }
+        }
+        else {
+          // velocity needs to start increasing to smooth to desired destination point
+          fingerVel[i] += fingerAccel;
+          fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
+          fingerRaw[i] += fingerVel[i];
+          fingerPos[i] = fingerRaw[i] / 100;
+          if(fingerRaw % 100 >= 50){
+            fingerPos += 1;
+          }
+        }
+      }
+      HCPCA9685.Servo(i, fingerPos[i]); // look at how i slayed dat
+    }
+  }
 }
