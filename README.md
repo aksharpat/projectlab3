@@ -1,4 +1,4 @@
-#Smoothing Function Control
+# Smoothing Function Control
 To change how the smoothing works, there are 2 important values to change:
 - fingerAccel: Changes how fast the fingers accelerate; increasing this will likely lessen the smoothing effect
 - maxVel: Changes the maximum velocity the fingers can move at; this will probably need an increase from where it's currently set (25)
