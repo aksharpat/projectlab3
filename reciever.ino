@@ -217,7 +217,7 @@ void loop()
   base_angle = map(base_raw, 10000,25000, 100,250);
   HCPCA9685.Servo(6, base_angle + 20); // base joint 1
   HCPCA9685.Servo(7, 410 - base_angle); // base joint 2
-  Serial.println(myData.wristRot);
+  //Serial.println(myData.wristRot);
 
   // loop through each finger for smoothing
   // 0 is pointer, 1 is middle, 2 is ring, 
@@ -275,4 +275,12 @@ void loop()
       HCPCA9685.Servo(i, fingerPos[i]); // look at how i slayed dat
     }
   }
+  Serial.print(fingerDest[0] * 100);
+  Serial.print(" ");
+  Serial.print(fingerRaw[0]);
+  Serial.print(" ");
+  Serial.print(fingerVel[0]);
+  Serial.print(" ");
+  Serial.print(fingerPos[0]);
+
 }
