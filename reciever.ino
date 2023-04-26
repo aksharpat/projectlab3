@@ -25,12 +25,12 @@ int base_angle;
 int base_raw;
 
 // variables for smoothing function
-int fingerDest[6] = {-1, -1, -1, -1, -1, -1}; // smoothing starts when data is first received
-int fingerPos[6];
-int fingerRaw[6] = {-1, -1, -1, -1, -1, -1}; // init for first pass of data receiving
-int fingerVel[6];
-int maxVel = 50;
-int fingerAccel = 1;
+int fingerDest[10] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1}; // smoothing starts when data is first received
+int fingerPos[10];
+int fingerRaw[10] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1}; // init for first pass of data receiving
+int fingerVel[10];
+int maxVel = 2000;
+int fingerAccel = 50;
 
 HCPCA9685 HCPCA9685(I2CAdd);
 struct_message myData;
@@ -223,6 +223,60 @@ void loop()
   // 0 is pointer, 1 is middle, 2 is ring, 
   // 3 is pinky, 4 is thumb line, 5 is palm joint
   for(int i = 0; i < 6; i++){ 
+    if(fingerDest[i] != -1){ // wait until finger data is received
+      if(fingerRaw[i] == -1){ // initialize finger position to first data sent, without smoothing
+        fingerPos[i] = fingerDest[i];
+        fingerRaw[i] = fingerPos[i] * 100;
+      }
+      else if (fingerDest[i] * 100 > fingerRaw[i] || fingerVel[i] > 0){ // destination is above raw function value
+        if(fingerDest[i] * 100 - fingerRaw[i] > constrain(fingerVel[i], -1, 1) * fingerVel[i] * fingerVel[i] / (2 * fingerAccel)){ 
+          // velocity can still increase (positive acceleration)
+          fingerVel[i] += fingerAccel;
+          fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
+          fingerRaw[i] += fingerVel[i];
+          fingerPos[i] = fingerRaw[i] / 100;
+          if(fingerRaw[i] % 100 >= 50){
+            fingerPos[i] += 1;
+          }
+        }
+        else{
+          // velocity needs to start decreasing to smooth to desired destination point
+          fingerVel[i] -= fingerAccel;
+          fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
+          fingerRaw[i] += fingerVel[i];
+          fingerPos[i] = fingerRaw[i] / 100;
+          if(fingerRaw[i] % 100 >= 50){
+            fingerPos[i] += 1;
+          }
+        }
+      }
+      else if (fingerDest[i] * 100 < fingerRaw[i] || fingerVel[i] < 0){
+        if(fingerDest[i] * 100 - fingerRaw[i] < constrain(fingerVel[i], -1, 1) * fingerVel[i] * fingerVel[i] / (2 * fingerAccel)){ 
+          // velocity can continue to decrease (magnitude is increasing if negative already)
+          fingerVel[i] -= fingerAccel;
+          fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
+          fingerRaw[i] += fingerVel[i];
+          fingerPos[i] = fingerRaw[i] / 100;
+          if(fingerRaw[i] % 100 >= 50){
+            fingerPos[i] += 1;
+          }
+        }
+        else {
+          // velocity needs to start increasing to smooth to desired destination point
+          fingerVel[i] += fingerAccel;
+          fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
+          fingerRaw[i] += fingerVel[i];
+          fingerPos[i] = fingerRaw[i] / 100;
+          if(fingerRaw[i] % 100 >= 50){
+            fingerPos[i] += 1;
+          }
+        }
+      }
+      HCPCA9685.Servo(i, fingerPos[i]); // look at how i slayed dat
+    }
+  }
+  // 8 and 9 are for the wrist but im not changing all these variable names
+  for(int i = 8; i <= 9; i++){ 
     if(fingerDest[i] != -1){ // wait until finger data is received
       if(fingerRaw[i] == -1){ // initialize finger position to first data sent, without smoothing
         fingerPos[i] = fingerDest[i];
