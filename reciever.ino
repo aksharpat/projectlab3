@@ -235,8 +235,8 @@ void loop()
           fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
           fingerRaw[i] += fingerVel[i];
           fingerPos[i] = fingerRaw[i] / 100;
-          if(fingerRaw % 100 >= 50){
-            fingerPos += 1;
+          if(fingerRaw[i] % 100 >= 50){
+            fingerPos[i] += 1;
           }
         }
         else{
@@ -245,8 +245,8 @@ void loop()
           fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
           fingerRaw[i] += fingerVel[i];
           fingerPos[i] = fingerRaw[i] / 100;
-          if(fingerRaw % 100 >= 50){
-            fingerPos += 1;
+          if(fingerRaw[i] % 100 >= 50){
+            fingerPos[i] += 1;
           }
         }
       }
@@ -257,8 +257,8 @@ void loop()
           fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
           fingerRaw[i] += fingerVel[i];
           fingerPos[i] = fingerRaw[i] / 100;
-          if(fingerRaw % 100 >= 50){
-            fingerPos += 1;
+          if(fingerRaw[i] % 100 >= 50){
+            fingerPos[i] += 1;
           }
         }
         else {
@@ -267,8 +267,8 @@ void loop()
           fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
           fingerRaw[i] += fingerVel[i];
           fingerPos[i] = fingerRaw[i] / 100;
-          if(fingerRaw % 100 >= 50){
-            fingerPos += 1;
+          if(fingerRaw[i] % 100 >= 50){
+            fingerPos[i] += 1;
           }
         }
       }
