@@ -228,7 +228,7 @@ void loop()
         fingerPos[i] = fingerDest[i];
         fingerRaw[i] = fingerPos[i] * 100;
       }
-      else if (fingerDest[i] * 100 > fingerRaw[i]){ // destination is above raw function value
+      else if (fingerDest[i] * 100 > fingerRaw[i] || fingerVel[i] > 0){ // destination is above raw function value
         if(fingerDest[i] * 100 - fingerRaw[i] > constrain(fingerVel[i], -1, 1) * fingerVel[i] * fingerVel[i] / (2 * fingerAccel)){ 
           // velocity can still increase (positive acceleration)
           fingerVel[i] += fingerAccel;
@@ -250,7 +250,7 @@ void loop()
           }
         }
       }
-      else if (fingerDest[i] * 100 < fingerRaw[i]){
+      else if (fingerDest[i] * 100 < fingerRaw[i] || fingerVel[i] < 0){
         if(fingerDest[i] * 100 - fingerRaw[i] < constrain(fingerVel[i], -1, 1) * fingerVel[i] * fingerVel[i] / (2 * fingerAccel)){ 
           // velocity can continue to decrease (magnitude is increasing if negative already)
           fingerVel[i] -= fingerAccel;
