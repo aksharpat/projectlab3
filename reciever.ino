@@ -281,6 +281,6 @@ void loop()
   Serial.print(" ");
   Serial.print(fingerVel[0]);
   Serial.print(" ");
-  Serial.print(fingerPos[0]);
+  Serial.println(fingerPos[0]);
 
 }
