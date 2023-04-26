@@ -33,19 +33,18 @@ uint8_t newMACAddress[] = {0xAA, 0xAB, 0x03, 0x23, 0xB1, 0xBA};
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 {
   memcpy(&myData, incomingData, sizeof(myData));
-  Serial.print("Bytes received: ");
-  Serial.println(len);
+  //Serial.print("Bytes received: ");
+  //Serial.println(len);
   HCPCA9685.Servo(0, myData.flex1); // index finger
   HCPCA9685.Servo(3, myData.flex4); // pinky finger
   HCPCA9685.Servo(1, myData.flex2); // middle finger
   HCPCA9685.Servo(2, myData.flex3); // ring finger
 
-  int thumb1 = constrain(map(myData.flex5, 13800, 15800, 90, 340), 100, 330); 
-  int thumb2 = constrain(map(myData.flex5, 13800, 15800, 260, 90), 100, 250);
+  int thumb1 = constrain(map(myData.flex5, 13800, 15800, 100, 330), 100, 330); 
+  int thumb2 = constrain(map(myData.flex5, 13800, 15800, 250, 100), 100, 250);
   HCPCA9685.Servo(4, thumb1); // fishing line
   HCPCA9685.Servo(5, thumb2); // palm joint
 
-  
   // Wrist control
   HCPCA9685.Servo(9, myData.wristRot); // wrist rotation
   HCPCA9685.Servo(10, myData.wristBend); // wrist bend
@@ -143,8 +142,8 @@ void setup()
   Serial.begin(115200);
   HCPCA9685.Init(SERVO_MODE);
   HCPCA9685.Sleep(false);
-  base_angle = 175;
-  base_raw = 17500;
+  base_angle = 300;
+  base_raw = 30000;
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
   // change MAC address
@@ -192,17 +191,17 @@ void loop()
     
   }
 
-  if(myData.base == 1 && base_raw < 25000){
+  if(myData.base == 1 && base_raw < 30000){
     base_raw += 10;
-  } else if(myData.base == -1 && base_raw > 10000){
+  } else if(myData.base == -1 && base_raw > 5000){
     base_raw -= 10;
   } 
-  base_raw = constrain(base_raw, 10000, 25000);
+  base_raw = constrain(base_raw, 5000, 30000);
 
-  base_angle = map(base_raw, 10000,25000, 100,250);
+  base_angle = map(base_raw, 5000,30000, 100,250);
   HCPCA9685.Servo(6, base_angle + 20); // base joint 1
   HCPCA9685.Servo(7, 410 - base_angle); // base joint 2
   Serial.println(myData.wristRot);
-
+ 
 
 }
