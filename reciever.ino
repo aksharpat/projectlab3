@@ -25,10 +25,10 @@ int base_angle;
 int base_raw;
 
 // variables for smoothing function
-int fingerDest[10] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1}; // smoothing starts when data is first received
-int fingerPos[10];
-int fingerRaw[10] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1}; // init for first pass of data receiving
-int fingerVel[10];
+int fingerDest[11] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}; // smoothing starts when data is first received
+int fingerPos[11];
+int fingerRaw[11] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}; // init for first pass of data receiving
+int fingerVel[11];
 int maxVel = 2000;
 int fingerAccel = 50;
 
@@ -62,8 +62,10 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 
   
   // Wrist control
-  HCPCA9685.Servo(9, myData.wristRot); // wrist rotation
-  HCPCA9685.Servo(10, myData.wristBend); // wrist bend
+  //HCPCA9685.Servo(9, myData.wristRot); // wrist rotation
+  //HCPCA9685.Servo(10, myData.wristBend); // wrist bend
+  fingerDest[9] = myData.wristRot;
+  fingerDest[10] = myData.wristBend;
 
   steps = myData.steps;
   
@@ -276,7 +278,7 @@ void loop()
     }
   }
   // 8 and 9 are for the wrist but im not changing all these variable names
-  for(int i = 8; i <= 9; i++){ 
+  for(int i = 9; i <= 10; i++){ 
     if(fingerDest[i] != -1){ // wait until finger data is received
       if(fingerRaw[i] == -1){ // initialize finger position to first data sent, without smoothing
         fingerPos[i] = fingerDest[i];
