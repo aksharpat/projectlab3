@@ -29,6 +29,7 @@ const int flexPin1 = 1; //adc ext pin; index
 const int flexPin3 = 34; //ring
 const int flexPin2 = 35; //middle
 const int flexPin5 = 0; //adc ext pin; thumb
+const int flexPin6 = 33; //elbow
 
 //#define  I2CAdd 0x40
 #define VRX_PIN  2 // adc ext pin for x direction 
@@ -38,7 +39,8 @@ const int flexPin5 = 0; //adc ext pin; thumb
 int basePos = 175;
 int rightleft1 = 0;
 int rightleft2 = 0;
-
+int rot;
+int bend;
 // wrist accelerometer data
 MPU6050 accel;
 int16_t ax, ay, az;
@@ -60,10 +62,10 @@ void readData(){
   int servoposition;
   int16_t adc;
   //WiFi.stop();
-  
+
   position = ads.readADC_SingleEnded(flexPin1); //index finger
-  servoposition = map(position, 13450, 16000, 280, 0); // change last 2 numbers to control dead zone size
-  servoposition = constrain(servoposition, 10, 268); // these numbers should never change (unless servo needs different values)
+  servoposition = map(position, 13450, 16000, 280, 0);
+  servoposition = constrain(servoposition, 10, 268);
   //Serial.println(servoposition);
   myData.flex1 = servoposition;
   
@@ -76,7 +78,7 @@ void readData(){
   position = analogRead(flexPin2); //middle finger
   servoposition = map(position, 3770, 4095, 295, 30);
   servoposition = constrain(servoposition, 40, 285);
-  Serial.println(servoposition);
+  //Serial.println(servoposition);
   myData.flex2 = servoposition;
   
   position = analogRead(flexPin3); //ring finger
@@ -89,12 +91,13 @@ void readData(){
   myData.flex5 = ads.readADC_SingleEnded(flexPin5);
   //Serial.println(myData.flex5);
 
-  Serial.println(" ");
   // Wrist values from accelerometer
   accel.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-  myData.wristBend = map(ax, -17000, 17000, 0, 350);
-  myData.wristRot = map(ay, -17000, 17000, 0, 350);
-  //Serial.println(myData.wristBend);
+  bend = map(ax, -20000, 20000, 0, 350);
+  myData.wristBend = constrain(bend, 0, 350);
+  rot = map(ay, -20000, 20000, 350, 0);
+  myData.wristRot = constrain(rot, 0, 350);
+  //Serial.println(myData.wristRot);
 
   //joystick values
   int valueX = round(ads.readADC_SingleEnded(VRX_PIN)/1000);
