@@ -31,6 +31,9 @@ int fingerRaw[11] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}; // init for fi
 int fingerVel[11];
 int maxVel = 2000;
 int fingerAccel = 50;
+int maxWristVel = 1000;
+int wristAccel = 10;
+
 
 HCPCA9685 HCPCA9685(I2CAdd);
 struct_message myData;
@@ -287,8 +290,8 @@ void loop()
       else if (fingerDest[i] * 100 > fingerRaw[i] || fingerVel[i] > 0){ // destination is above raw function value
         if(fingerDest[i] * 100 - fingerRaw[i] > constrain(fingerVel[i], -1, 1) * fingerVel[i] * fingerVel[i] / (2 * fingerAccel)){ 
           // velocity can still increase (positive acceleration)
-          fingerVel[i] += fingerAccel;
-          fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
+          fingerVel[i] += wristAccel;
+          fingerVel[i] = constrain(fingerVel[i], -maxWristVel, maxWristVel); // make sure velocity stays under the max
           fingerRaw[i] += fingerVel[i];
           fingerPos[i] = fingerRaw[i] / 100;
           if(fingerRaw[i] % 100 >= 50){
@@ -297,8 +300,8 @@ void loop()
         }
         else{
           // velocity needs to start decreasing to smooth to desired destination point
-          fingerVel[i] -= fingerAccel;
-          fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
+          fingerVel[i] -= wristAccel;
+          fingerVel[i] = constrain(fingerVel[i], -maxWristVel, maxWristVel); // make sure velocity stays under the max
           fingerRaw[i] += fingerVel[i];
           fingerPos[i] = fingerRaw[i] / 100;
           if(fingerRaw[i] % 100 >= 50){
@@ -309,8 +312,8 @@ void loop()
       else if (fingerDest[i] * 100 < fingerRaw[i] || fingerVel[i] < 0){
         if(fingerDest[i] * 100 - fingerRaw[i] < constrain(fingerVel[i], -1, 1) * fingerVel[i] * fingerVel[i] / (2 * fingerAccel)){ 
           // velocity can continue to decrease (magnitude is increasing if negative already)
-          fingerVel[i] -= fingerAccel;
-          fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
+          fingerVel[i] -= wristAccel;
+          fingerVel[i] = constrain(fingerVel[i], -maxWristVel, maxWristVel); // make sure velocity stays under the max
           fingerRaw[i] += fingerVel[i];
           fingerPos[i] = fingerRaw[i] / 100;
           if(fingerRaw[i] % 100 >= 50){
@@ -319,8 +322,8 @@ void loop()
         }
         else {
           // velocity needs to start increasing to smooth to desired destination point
-          fingerVel[i] += fingerAccel;
-          fingerVel[i] = constrain(fingerVel[i], -maxVel, maxVel); // make sure velocity stays under the max
+          fingerVel[i] += wristAccel;
+          fingerVel[i] = constrain(fingerVel[i], -maxWristVel, maxWristVel); // make sure velocity stays under the max
           fingerRaw[i] += fingerVel[i];
           fingerPos[i] = fingerRaw[i] / 100;
           if(fingerRaw[i] % 100 >= 50){
