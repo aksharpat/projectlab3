@@ -31,7 +31,7 @@ int fingerRaw[11] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}; // init for fi
 int fingerVel[11];
 int maxVel = 2000;
 int fingerAccel = 50;
-int maxWristVel = 1000;
+int maxWristVel = 400;
 int wristAccel = 10;
 
 
