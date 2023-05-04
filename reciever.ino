@@ -148,6 +148,10 @@ void setup()
   WiFi.mode(WIFI_STA);
   // change MAC address
   esp_wifi_set_mac(WIFI_IF_STA, &newMACAddress[0]);
+  
+  //test individual fingers
+  handInit();
+  
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK)
   {
@@ -156,7 +160,7 @@ void setup()
   }
   
 
-  handInit();
+  
   
   // Once ESPNow is successfully Init, we will register for recv CB to
   // get recv packer info
